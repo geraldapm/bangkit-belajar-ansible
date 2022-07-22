@@ -1,0 +1,30 @@
+- hosts: db
+  gather_facts: true
+  become: yes
+  become_method: su
+  vars_files:
+    - secrets.yml
+  vars:
+    ansible_connection: ssh
+    ansible_user: admin
+    ansible_ssh_pass: "{{passwords.admin}}"
+    ansible_become_pass: "{{passwords.root}}"
+  tasks:
+  - debug:
+      msg: "The hostname is {{ ansible_hostname }} with os {{ansible_os_family}}"
+  - name: install 
+    apk:
+      name:
+        - mysql
+        - mysql-client
+      state: present
+  
+  - name: init server
+    shell: mysql_install_db --user=mysql --datadir=/var/lib/mysql
+
+  - service:
+      name: mariadb
+      state: restarted
+
+  - name: init server
+    shell: mysqladmin -u root password toor

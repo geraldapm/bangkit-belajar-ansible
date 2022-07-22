@@ -2,8 +2,13 @@
   become: yes
   gather_facts: yes
   become_method: su
+  vars_files:
+    - secrets.yml
   vars:
-    ansible_become_pass: rahasia
+    ansible_connection: ssh
+    ansible_user: admin
+    ansible_ssh_pass: "{{passwords.admin}}"
+    ansible_become_pass: "{{passwords.root}}"
   tasks:
     - name: show hostname
       debug:

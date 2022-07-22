@@ -1,0 +1,41 @@
+- hosts: webservers
+  become: yes
+  gather_facts: yes
+  become_method: su
+  vars:
+    ansible_become_pass: rahasia
+  tasks:
+    - name: show hostname
+      debug:
+        msg: "The hostname is {{ ansible_hostname }}"
+    - apk:
+        name: nginx
+        state: present
+      notify: restart_nginx
+
+    - name: Add a line to a file if the file does not exist, without passing regexp
+      ansible.builtin.lineinfile:
+        path: /var/www/localhost/htdocs/index.html
+        line: <html><h1>This is the webserver of {{ansible_hostname}}</h1></html>
+        create: yes
+
+    - name: Add a line to a file if the file does not exist, without passing regexp
+      ansible.builtin.lineinfile:
+        path: /etc/nginx/http.d/default.conf
+        line: 'try_files $uri $uri/ = 404;'
+        regexp: 'root /var/www/localhost/htdocs/;'
+        create: yes
+    
+    - name: Add a line to a file if the file does not exist, without passing regexp
+      ansible.builtin.lineinfile:
+        path: /etc/nginx/http.d/default.conf
+        line: 'root /var/www/localhost/htdocs/;'
+        insertafter: 'listen [::]:80 default_server;'
+        create: yes
+
+
+  handlers:
+    - name: restart_nginx
+      service:
+        name: nginx
+        state: restarted
